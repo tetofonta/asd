@@ -1,0 +1,17 @@
+[package]
+name = "AlgorithmsAndDataStructures"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "common"
+path = "src/common/lib.rs"
+
+[[bin]]
+name = "instance_gen"
+path = "src/instance_gen/main.rs"
+
+[dependencies]
+rand_xoshiro = "0.6.0"
+argparse = "0.2.2"
+yaml-rust = "0.4.5"
