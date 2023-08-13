@@ -1,13 +1,13 @@
-use crate::field::field::{Field};
+use crate::field::field::{Field, InstanceField};
 
 pub struct NeighborIterator<'a>{
-    field: &'a dyn Field,
+    field: &'a InstanceField,
     base_point: (usize, usize),
     next: Option<(i64, i64)>
 }
 
 impl<'a> NeighborIterator<'a>{
-    pub fn new(field: &'a impl Field, start_point: (usize, usize)) -> Self{
+    pub fn new(field: &'a InstanceField, start_point: (usize, usize)) -> Self{
         return NeighborIterator{
             field,
             base_point: start_point,

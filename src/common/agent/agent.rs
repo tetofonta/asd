@@ -1,6 +1,6 @@
 use rand_xoshiro::rand_core::{RngCore, SeedableRng};
 use rand_xoshiro::Xoshiro256PlusPlus;
-use crate::field::field::Field;
+use crate::field::field::{Field, InstanceField};
 
 pub struct Agent{
     moves: Vec<(usize, usize)>,
@@ -17,6 +17,14 @@ impl Agent{
         }
     }
 
+    pub fn from(moves: Vec<(usize, usize)>) -> Self{
+        return Agent{
+            moves,
+            rng: Xoshiro256PlusPlus::seed_from_u64(42), //we do not need it
+            stopped: true
+        }
+    }
+
     pub fn get_pos(&self, time: usize) -> (usize, usize){
         if self.moves.len() > time{
             self.get_last_pos();
@@ -28,7 +36,7 @@ impl Agent{
         return self.moves.last().cloned().unwrap()
     }
 
-    pub fn next_move(&mut self, field: &impl Field, others: Vec<(usize, usize)>, stop_prob: f64){
+    pub fn next_move(&mut self, field: &InstanceField, others: Vec<(usize, usize)>, stop_prob: f64){
         if self.stopped{
             return;
         }

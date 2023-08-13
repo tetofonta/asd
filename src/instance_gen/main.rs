@@ -10,7 +10,7 @@ use common::field::open_node::OpenNode;
 use common::field::weight;
 use common::noise::perlin::PerlinNoise;
 use bincode::{config};
-use common::field::field::{Field, RandomField};
+use common::field::field::{Field, InstanceField, RandomField};
 
 mod args;
 mod noise_value;
@@ -43,7 +43,7 @@ fn gen_field_parameters(cfg: &Config) -> (u32, usize, PerlinNoise) {
     return (v.value, cfg.size.0 * v.cell.1 + v.cell.0, noise);
 }
 
-fn gen_agents(cfg: &Config, field: &mut impl Field) -> Vec<Agent>{
+fn gen_agents(cfg: &Config, field: &mut InstanceField) -> Vec<Agent>{
     let mut agents: Vec<Agent> = Vec::with_capacity(cfg.agents.number);
     let mut start_positions: Vec<(usize, usize)> = Vec::with_capacity(cfg.agents.number);
     for i in 0..cfg.agents.number {
@@ -66,7 +66,7 @@ fn gen_agents(cfg: &Config, field: &mut impl Field) -> Vec<Agent>{
     return agents
 }
 
-fn gen_entity_positions(field: &mut impl Field, agents: &Vec<Agent>) -> ((usize, usize), (usize, usize)){
+fn gen_entity_positions(field: &mut InstanceField, agents: &Vec<Agent>) -> ((usize, usize), (usize, usize)){
     let init = field.rnd_pick(&get_agents_at_time(&agents, 0, None)).expect("Cannot pick starting position. grid is occupied at time 0");
     let mut occupied_end_positions = get_agents_last(&agents,None);
     occupied_end_positions.push(init); //Theoretically we could start and end in the same position
@@ -74,7 +74,7 @@ fn gen_entity_positions(field: &mut impl Field, agents: &Vec<Agent>) -> ((usize,
     return (init, goal)
 }
 
-fn compute_aux(field: &impl Field, goal: (usize, usize), path: &str) {
+fn compute_aux(field: &InstanceField, goal: (usize, usize), path: &str) {
     let mut nodes: HashMap<(usize, usize), (f64, Option<(usize, usize)>)> = HashMap::with_capacity(field.nodes());
     let mut heap: BinaryHeap<Reverse<OpenNode<(usize, usize)>>> = BinaryHeap::new();
 
@@ -97,10 +97,7 @@ fn compute_aux(field: &impl Field, goal: (usize, usize), path: &str) {
     let file = File::create(path).expect("File creation error");
     let config = config::standard();
     let mut e = ZlibEncoder::new(file, Compression::best());
-    for (k, v) in nodes.iter(){
-        e.write_all(&bincode::encode_to_vec(&k, config).unwrap()).expect("Cannot serialize");
-        e.write_all(&bincode::encode_to_vec(&v.1, config).unwrap()).expect("Cannot serialize");
-    }
+    bincode::encode_into_std_write(&nodes, &mut e, config).expect("Cannot serialize");
 }
 
 fn write_results(agents: &Vec<Agent>, cfg: &Config, init: (usize, usize), goal: (usize, usize), limit: u32, limit_cell: usize){

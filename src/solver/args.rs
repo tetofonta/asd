@@ -24,7 +24,7 @@ pub struct Config{
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct GridConfig {
+pub struct GridConfig {
     pub width: usize,
     pub height: usize,
     pub obstacles: usize,
@@ -33,7 +33,7 @@ struct GridConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct NoiseConfig {
+pub struct NoiseConfig {
     pub octaves: usize,
     pub persistence: f64,
     pub lacunarity: f64,
@@ -45,8 +45,8 @@ struct NoiseConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct AgentsConfig {
-    paths: Vec<Vec<(usize, usize)>>
+pub struct AgentsConfig {
+    pub paths: Vec<Vec<(usize, usize)>>
 }
 
 impl Config{
