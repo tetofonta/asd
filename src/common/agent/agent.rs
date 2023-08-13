@@ -1,4 +1,3 @@
-use core::slice::Iter;
 use rand_xoshiro::rand_core::{RngCore, SeedableRng};
 use rand_xoshiro::Xoshiro256PlusPlus;
 use crate::field::field::Field;

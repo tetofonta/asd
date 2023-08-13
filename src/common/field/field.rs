@@ -9,13 +9,14 @@ pub struct Field {
     cell_limit: usize,
     width: usize,
     height: usize,
+    obstacles: usize,
 
     rng: Xoshiro256PlusPlus,
     field_noise: PerlinNoise,
 }
 
 impl Field {
-    pub fn new(noise: PerlinNoise, val_limit: u32, cell_limit: usize, size: (usize, usize)) -> Self {
+    pub fn new(noise: PerlinNoise, val_limit: u32, cell_limit: usize, size: (usize, usize), obstacles: usize) -> Self {
         return Field {
             val_limit,
             cell_limit,
@@ -23,6 +24,7 @@ impl Field {
             height: size.1,
             rng: Xoshiro256PlusPlus::seed_from_u64(noise.get_seed()),
             field_noise: noise,
+            obstacles
         };
     }
 
@@ -55,10 +57,18 @@ impl Field {
     pub fn exists(&self, x: usize, y: usize) -> bool{
         return x < self.width && y < self.height;
     }
+
+    pub fn nodes(&self) -> usize{
+        return self.width * self.height - self.obstacles
+    }
+
+    pub fn obstacles(&self) -> usize{
+        return self.obstacles
+    }
 }
 
 
-impl Display for Field{
+impl Display for Field {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut s = String::from("");
         for y in 0..self.height{

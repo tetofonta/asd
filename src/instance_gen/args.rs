@@ -2,7 +2,7 @@ use std::cmp::max;
 use std::fs;
 use std::time::SystemTime;
 use argparse::{ArgumentParser, Store, StoreOption};
-use yaml_rust::{Yaml, YamlLoader};
+use yaml_rust::{YamlLoader};
 
 #[derive(Debug)]
 pub struct NoiseParams{
@@ -29,6 +29,8 @@ pub struct Config{
     pub agents: AgentParams,
     pub obstacles: usize,
     pub time_max: usize,
+
+    pub aux_path: Option<String>
 }
 
 impl Config{
@@ -49,6 +51,7 @@ impl Config{
 
             ap.refer(&mut fname).add_option(&["-c", "--config"], StoreOption, "Config file name. If present configuration will be loaded from file INSTEAD of cmdline.");
             ap.refer(&mut conf_id).add_option(&["-i", "--config-id"], StoreOption, "Config ID. Allows to load one doc from the yaml file");
+            ap.refer(&mut cfg.aux_path).add_option(&["-o", "--aux-file"], StoreOption, "Output aux file path");
 
             ap.refer(&mut cfg.seed).add_option(&["-s", "--seed"], Store, "RNG Seed");
             ap.refer(&mut w).add_option(&["-w", "--width"], StoreOption, "Grid Width");
@@ -77,6 +80,8 @@ impl Config{
             cfg.size = (w.unwrap(), h.unwrap());
         }
         if let Some(cell_size) = cfg.noise_params.cell_size{
+            cfg.noise_params.cell_size = Some(cell_size);
+        } else {
             cfg.noise_params.cell_size = Some(max(cfg.size.0, cfg.size.1))
         }
         return cfg;
@@ -102,6 +107,7 @@ impl Config{
             if let Some(v) = doc["seed"].as_i64() { cfg.seed = v as u64; }
             if let Some(v) = doc["obstacles"].as_i64() { cfg.obstacles = v as usize; }
             if let Some(v) = doc["time_max"].as_i64() { cfg.time_max = v as usize; }
+            if let Some(v) = doc["aux_path"].as_str() { cfg.aux_path = Some(v.to_string()); }
             if !doc["agents"].is_badvalue() {
                 if let Some(v) = doc["agents"]["number"].as_i64() { cfg.agents.number = v as usize; }
                 if let Some(v) = doc["agents"]["stop_probability"].as_f64() { cfg.agents.stop_probability = v; }
@@ -129,6 +135,7 @@ impl Config{
             obstacles: 30,
             size: (10, 10),
             time_max: 100,
+            aux_path: None,
             agents: AgentParams{
                 number: 1,
                 stop_probability: 0.0
@@ -139,7 +146,7 @@ impl Config{
                 frequency: None,
                 persistence: None,
                 lacunarity: None,
-                cell_size: None
+                cell_size: None,
             }
         }
     }

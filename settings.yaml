@@ -4,6 +4,7 @@ type: settings
 seed: 45116156156
 obstacles: 70
 time_max: 15
+aux_path: ./test_settings_1.aux
 size:
   width: 30
   height: 30
