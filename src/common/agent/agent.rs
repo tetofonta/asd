@@ -28,7 +28,7 @@ impl Agent{
         return self.moves.last().cloned().unwrap()
     }
 
-    pub fn next_move(&mut self, field: &Field, others: Vec<(usize, usize)>, stop_prob: f64){
+    pub fn next_move(&mut self, field: &impl Field, others: Vec<(usize, usize)>, stop_prob: f64){
         if self.stopped{
             return;
         }

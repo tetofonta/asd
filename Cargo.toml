@@ -11,6 +11,9 @@ path = "src/common/lib.rs"
 name = "instance_gen"
 path = "src/instance_gen/main.rs"
 
+[[bin]]
+name = "solver"
+path = "src/solver/main.rs"
 
 [dependencies]
 rand_xoshiro = "0.6.0"
@@ -18,3 +21,5 @@ argparse = "0.2.2"
 yaml-rust = "0.4.5"
 flate2 = "1.0"
 bincode = "2.0.0-rc.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9.25"

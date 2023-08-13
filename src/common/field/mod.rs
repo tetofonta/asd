@@ -13,12 +13,12 @@ pub fn heuristic(node: &(usize, usize), goal: &(usize, usize)) -> i64{
 
 #[cfg(test)]
 mod field_test{
-    use crate::field::field::Field;
+    use crate::field::field::RandomField;
     use crate::noise::perlin::PerlinNoise;
 
     #[test]
     fn simple_case() {
-        let f = Field::new(
+        let f = RandomField::new(
             PerlinNoise::new(Some(42), Some(3),None, None, None, None, Some(5)),
             1976371185,
             9,
@@ -45,7 +45,7 @@ mod field_test{
 
     #[test]
     fn underflow() {
-        let f = Field::new(
+        let f = RandomField::new(
             PerlinNoise::new(Some(42), Some(3),None, None, None, None, Some(5)),
             1976371185,
             9,
@@ -70,7 +70,7 @@ mod field_test{
 
     #[test]
     fn overflow() {
-        let f = Field::new(
+        let f = RandomField::new(
             PerlinNoise::new(Some(42), Some(3),None, None, None, None, Some(5)),
             1976371185,
             9,

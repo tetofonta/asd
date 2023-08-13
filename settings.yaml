@@ -1,6 +1,6 @@
 ---
 id: test_settings_1
-type: settings
+kind: settings
 seed: 45116156156
 obstacles: 70
 time_max: 15

@@ -22,6 +22,7 @@ pub struct AgentParams{
 
 #[derive(Debug)]
 pub struct Config{
+    pub id: String,
     pub size: (usize, usize),
     pub seed: u64,
 
@@ -100,10 +101,11 @@ impl Config{
                 }
             }
 
-            if !doc["type"].as_str().expect("Settings formats must have a type discriminator").eq("settings") {
+            if !doc["kind"].as_str().expect("Settings formats must have a kind discriminator").eq("settings") {
                 continue;
             }
 
+            if let Some(v) = doc["id"].as_str() { cfg.id = v.to_string(); }
             if let Some(v) = doc["seed"].as_i64() { cfg.seed = v as u64; }
             if let Some(v) = doc["obstacles"].as_i64() { cfg.obstacles = v as usize; }
             if let Some(v) = doc["time_max"].as_i64() { cfg.time_max = v as usize; }
@@ -131,6 +133,7 @@ impl Config{
 
     fn defaults() -> Self{
         return Config{
+            id: "none".to_string(),
             seed: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_micros() as u64,
             obstacles: 30,
             size: (10, 10),

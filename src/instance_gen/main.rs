@@ -1,3 +1,4 @@
+use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::fs::File;
 use std::hash::Hash;
@@ -5,17 +6,19 @@ use std::io::Write;
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use common::agent::agent::{Agent, get_agents_at_time, get_agents_last};
-use common::field::field::Field;
 use common::field::open_node::OpenNode;
 use common::field::weight;
 use common::noise::perlin::PerlinNoise;
-use bincode::{config, Decode, Encode};
+use bincode::{config};
+use common::field::field::{Field, RandomField};
 
 mod args;
 mod noise_value;
+mod output;
 
 use crate::args::Config;
 use crate::noise_value::NoiseValue;
+use crate::output::OutSettings;
 
 fn gen_field_parameters(cfg: &Config) -> (u32, usize, PerlinNoise) {
     let mut heap: BinaryHeap<NoiseValue> = BinaryHeap::with_capacity(cfg.obstacles);
@@ -40,7 +43,7 @@ fn gen_field_parameters(cfg: &Config) -> (u32, usize, PerlinNoise) {
     return (v.value, cfg.size.0 * v.cell.1 + v.cell.0, noise);
 }
 
-fn gen_agents(cfg: &Config, field: &mut Field) -> Vec<Agent>{
+fn gen_agents(cfg: &Config, field: &mut impl Field) -> Vec<Agent>{
     let mut agents: Vec<Agent> = Vec::with_capacity(cfg.agents.number);
     let mut start_positions: Vec<(usize, usize)> = Vec::with_capacity(cfg.agents.number);
     for i in 0..cfg.agents.number {
@@ -57,13 +60,13 @@ fn gen_agents(cfg: &Config, field: &mut Field) -> Vec<Agent>{
         for i in 0..agents.len() {
             let moves = get_agents_last(&agents, Some(agents.get(i).unwrap().get_last_pos()));
             let a = agents.get_mut(i).unwrap();
-            a.next_move(&field, moves, cfg.agents.stop_probability)
+            a.next_move(field, moves, cfg.agents.stop_probability)
         }
     }
     return agents
 }
 
-fn gen_entity_positions(field: &mut Field, agents: &Vec<Agent>) -> ((usize, usize), (usize, usize)){
+fn gen_entity_positions(field: &mut impl Field, agents: &Vec<Agent>) -> ((usize, usize), (usize, usize)){
     let init = field.rnd_pick(&get_agents_at_time(&agents, 0, None)).expect("Cannot pick starting position. grid is occupied at time 0");
     let mut occupied_end_positions = get_agents_last(&agents,None);
     occupied_end_positions.push(init); //Theoretically we could start and end in the same position
@@ -71,20 +74,20 @@ fn gen_entity_positions(field: &mut Field, agents: &Vec<Agent>) -> ((usize, usiz
     return (init, goal)
 }
 
-fn compute_aux(field: &Field, goal: (usize, usize), path: &str) {
+fn compute_aux(field: &impl Field, goal: (usize, usize), path: &str) {
     let mut nodes: HashMap<(usize, usize), (f64, Option<(usize, usize)>)> = HashMap::with_capacity(field.nodes());
-    let mut heap: BinaryHeap<OpenNode<(usize, usize)>> = BinaryHeap::new();
+    let mut heap: BinaryHeap<Reverse<OpenNode<(usize, usize)>>> = BinaryHeap::new();
 
     nodes.insert(goal, (0.0, None));
-    heap.push(OpenNode::new(0.0, goal, 0));
+    heap.push(Reverse(OpenNode::new(0.0, goal, 0)));
     while heap.len() > 0{
-        let element = heap.pop().unwrap();
+        let element = heap.pop().unwrap().0;
         for adj in field.iter_neighbors(element.node().0, element.node().1){
             let cur_weight = nodes.get(element.node()).cloned().expect("Node never reached").0 + weight(element.node(), &adj);
             let (dest_weight, _) = nodes.get(&adj).cloned().unwrap_or((f64::MAX, None));
             if cur_weight < dest_weight{
                 nodes.insert(adj, (cur_weight, Some(element.node()).cloned()));
-                heap.push(OpenNode::new(cur_weight, adj, 0));
+                heap.push(Reverse(OpenNode::new(cur_weight, adj, 0)));
             }
         }
     }
@@ -101,7 +104,8 @@ fn compute_aux(field: &Field, goal: (usize, usize), path: &str) {
 }
 
 fn write_results(agents: &Vec<Agent>, cfg: &Config, init: (usize, usize), goal: (usize, usize), limit: u32, limit_cell: usize){
-
+    let out = OutSettings::new(agents, cfg, init, goal, limit, limit_cell);
+    serde_yaml::to_writer(std::io::stdout(), &out).unwrap();
 }
 
 fn main() {
@@ -112,7 +116,7 @@ fn main() {
     let (limit, cell, noise) = gen_field_parameters(&cfg);
 
     //configure the field
-    let mut field = Field::new(noise, limit, cell, cfg.size, cfg.obstacles);
+    let mut field = RandomField::new(noise, limit, cell, cfg.size, cfg.obstacles);
 
     // Agents and start-finish can be recalculated based on the seed but
     // it's better to save the instance for more flexibility.
@@ -122,19 +126,9 @@ fn main() {
     let (init, goal) = gen_entity_positions(&mut field, &agents);
 
     //precalculate the auxiliary table
-    if let Some(path) = cfg.aux_path{
+    if let Some(path) = cfg.aux_path.as_ref(){
         compute_aux(&field, goal, path.as_str());
     }
 
-    // write_results(&agents, &cfg, init, goal, limit, cell);
-
-    println!("{}, {}, {:?}, {:?}", limit, cell, init, goal);
-    println!("{}", field);
-
-    for a in &agents{
-        for m in a.get_moves(){
-            print!("{:?}->", m);
-        }
-        println!();
-    }
+    write_results(&agents, &cfg, init, goal, limit, cell);
 }
