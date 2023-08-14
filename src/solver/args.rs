@@ -15,6 +15,7 @@ pub enum ConfigTypes{
 pub struct Config{
     pub id: String,
     pub seed: u64,
+    pub greedy: bool,
     pub grid: GridConfig,
     pub aux_path: Option<String>,
     pub agents: AgentsConfig,

@@ -74,7 +74,7 @@ fn gen_entity_positions(field: &mut InstanceField, agents: &Vec<Agent>) -> ((usi
     return (init, goal)
 }
 
-fn compute_aux(field: &InstanceField, goal: (usize, usize), path: &str) {
+fn compute_aux(field: &InstanceField, goal: (usize, usize), path: &str, tmax: usize) {
     let mut nodes: HashMap<(usize, usize), (f64, Option<(usize, usize)>)> = HashMap::with_capacity(field.nodes());
     let mut heap: BinaryHeap<Reverse<OpenNode<(usize, usize)>>> = BinaryHeap::new();
 
@@ -82,14 +82,18 @@ fn compute_aux(field: &InstanceField, goal: (usize, usize), path: &str) {
     heap.push(Reverse(OpenNode::new(0.0, goal, 0)));
     while heap.len() > 0{
         let element = heap.pop().unwrap().0;
+        if element.time() > tmax{
+            continue
+        }
         for adj in field.iter_neighbors(element.node().0, element.node().1){
             let cur_weight = nodes.get(element.node()).cloned().expect("Node never reached").0 + weight(element.node(), &adj);
             let (dest_weight, _) = nodes.get(&adj).cloned().unwrap_or((f64::MAX, None));
             if cur_weight < dest_weight{
                 nodes.insert(adj, (cur_weight, Some(element.node()).cloned()));
-                heap.push(Reverse(OpenNode::new(cur_weight, adj, 0)));
+                heap.push(Reverse(OpenNode::new(cur_weight, adj, element.time() + 1)));
             }
         }
+
     }
 
     //store the file
@@ -124,7 +128,9 @@ fn main() {
 
     //precalculate the auxiliary table
     if let Some(path) = cfg.aux_path.as_ref(){
-        compute_aux(&field, goal, path.as_str());
+        if cfg.greedy{
+            compute_aux(&field, goal, path.as_str(), cfg.time_max);
+        }
     }
 
     write_results(&agents, &cfg, init, goal, limit, cell);

@@ -26,8 +26,8 @@ impl Agent{
     }
 
     pub fn get_pos(&self, time: usize) -> (usize, usize){
-        if self.moves.len() > time{
-            self.get_last_pos();
+        if time >= self.moves.len(){
+            return self.get_last_pos();
         }
         return self.moves.get(time).cloned().unwrap();
     }

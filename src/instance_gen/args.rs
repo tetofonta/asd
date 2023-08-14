@@ -1,7 +1,7 @@
 use std::cmp::max;
 use std::fs;
 use std::time::SystemTime;
-use argparse::{ArgumentParser, Store, StoreOption};
+use argparse::{ArgumentParser, Store, StoreFalse, StoreOption};
 use yaml_rust::{YamlLoader};
 
 #[derive(Debug)]
@@ -25,7 +25,7 @@ pub struct Config{
     pub id: String,
     pub size: (usize, usize),
     pub seed: u64,
-
+    pub greedy: bool,
     pub noise_params: NoiseParams,
     pub agents: AgentParams,
     pub obstacles: usize,
@@ -53,6 +53,7 @@ impl Config{
             ap.refer(&mut fname).add_option(&["-c", "--config"], StoreOption, "Config file name. If present configuration will be loaded from file INSTEAD of cmdline.");
             ap.refer(&mut conf_id).add_option(&["-i", "--config-id"], StoreOption, "Config ID. Allows to load one doc from the yaml file");
             ap.refer(&mut cfg.aux_path).add_option(&["-o", "--aux-file"], StoreOption, "Output aux file path");
+            ap.refer(&mut cfg.greedy).add_option(&["-e", "--exhaustive"], StoreFalse, "Do not use greedy search (won't use aux file)");
 
             ap.refer(&mut cfg.seed).add_option(&["-s", "--seed"], Store, "RNG Seed");
             ap.refer(&mut w).add_option(&["-w", "--width"], StoreOption, "Grid Width");
@@ -107,6 +108,7 @@ impl Config{
 
             if let Some(v) = doc["id"].as_str() { cfg.id = v.to_string(); }
             if let Some(v) = doc["seed"].as_i64() { cfg.seed = v as u64; }
+            if let Some(v) = doc["greedy"].as_bool() { cfg.greedy = v; }
             if let Some(v) = doc["obstacles"].as_i64() { cfg.obstacles = v as usize; }
             if let Some(v) = doc["time_max"].as_i64() { cfg.time_max = v as usize; }
             if let Some(v) = doc["aux_path"].as_str() { cfg.aux_path = Some(v.to_string()); }
@@ -138,6 +140,7 @@ impl Config{
             obstacles: 30,
             size: (10, 10),
             time_max: 100,
+            greedy: true,
             aux_path: None,
             agents: AgentParams{
                 number: 1,

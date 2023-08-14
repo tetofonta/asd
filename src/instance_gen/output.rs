@@ -6,6 +6,7 @@ use crate::args::Config;
 pub struct OutSettings {
     id: String,
     kind: String,
+    greedy: bool,
     seed: u64,
     grid: OutGridSettings,
     aux_path: Option<String>,
@@ -49,6 +50,7 @@ impl OutSettings{
             kind: "instance".to_string(),
             aux_path: cfg.aux_path.as_ref().cloned(),
             time_max: cfg.time_max,
+            greedy: cfg.greedy,
             init,
             goal,
             grid: OutGridSettings{

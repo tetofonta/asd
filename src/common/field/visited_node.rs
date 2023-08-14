@@ -5,26 +5,26 @@ use crate::agent::agent::Agent;
 use crate::agent::agent_manager::AgentManager;
 use crate::field::weight;
 
-type Link<T> = Option<Rc<RefCell<T>>>;
-
+#[derive(Debug)]
 pub struct VisitedNode{
     location: (usize, usize),
-    timeline: BTreeMap<usize, (f64, Link<VisitedNode>)>,
+    timeline: BTreeMap<usize, (f64, Option<(usize, usize)>)>,
     best: (usize, f64)
 }
 
 impl VisitedNode{
 
     pub fn new(location: (usize, usize)) -> Self{
-        return VisitedNode{
+        let cell = VisitedNode{
             location,
             timeline: BTreeMap::new(),
             best: (usize::MAX, f64::MAX)
-        }
+        };
+        return cell
     }
 
-    fn get_last_entry_before(&self, time: usize) -> Option<(usize, f64, Link<VisitedNode>)>{
-        let ret = self.timeline.range(..time).next_back();
+    fn get_last_entry_before(&self, time: usize) -> Option<(usize, f64, Option<(usize, usize)>)>{
+        let ret = self.timeline.range(..time+1).next_back();
         if ret.is_none(){
             return None
         }
@@ -32,30 +32,32 @@ impl VisitedNode{
         return Some((t.clone(), w.clone(), p.as_ref().cloned()))
     }
 
-    pub fn set(&mut self, time: usize, weight: f64, parent: Link<VisitedNode>, agents: &AgentManager){
+    pub fn set(&mut self, time: usize, weight: f64, parent: Option<(usize, usize)>, agents: &AgentManager){
         if self.best.1 > weight || (self.best.1 == weight && self.best.0 > time){
             self.best = (time, weight)
         }
 
         if let Some(old) = self.get_last_entry_before(time){
-            let (t, w, p) = old;
+            let (_, _, p) = old;
             if p.is_none() || parent.is_none(){
                 self.timeline.insert(time, (weight, parent));
                 return;
             }
             let last_parent = p.as_ref().unwrap();
             let cur_parent = parent.as_ref().unwrap();
-            if last_parent.borrow().location == cur_parent.borrow().location && self.weight(time, agents) > weight{
-                self.timeline.insert(time, (weight, parent));
+            if last_parent == cur_parent{
+                if self.weight(time, agents) > weight {
+                    self.timeline.insert(time, (weight, parent));
+                }
+                return;
             }
-        } else {
-            self.timeline.insert(time, (weight, parent));
         }
+        self.timeline.insert(time, (weight, parent));
     }
 
     pub fn weight(&self, time: usize, agents: &AgentManager) -> f64{
         if let Some(last) = self.get_last_entry_before(time){
-            let (t, w, p) = last;
+            let (t, w, _) = last;
             if t == time{
                 return w;
             }
@@ -72,15 +74,25 @@ impl VisitedNode{
         return f64::MAX;
     }
 
-    pub fn parent(&self, time: usize) -> Link<VisitedNode>{
+    pub fn parent(&self, time: usize) -> Option<(usize, usize)>{
         if let Some(last) = self.get_last_entry_before(time){
             let (t, _, p) = last;
             if t == time{
                 return p;
             }
-            return None; // i cannot return my reference as an RC =( I should clone myself and this is bad
+            return Some(self.location);
         }
         return None;
+    }
+
+    pub fn best_time(&self) -> usize{
+        return self.best.0
+    }
+    pub fn best_weight(&self) -> f64{
+        return self.best.1
+    }
+    pub fn node(&self) -> (usize, usize){
+        return self.location;
     }
 }
 

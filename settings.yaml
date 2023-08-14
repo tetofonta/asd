@@ -2,8 +2,9 @@
 id: test_settings_1
 kind: settings
 seed: 45116156156
+greedy: true
 obstacles: 70
-time_max: 15
+time_max: 100
 aux_path: ./test_settings_1.aux
 size:
   width: 30
