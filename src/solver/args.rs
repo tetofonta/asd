@@ -69,18 +69,20 @@ impl Config{
         for document in serde_yaml::Deserializer::from_str(contents.as_str()) {
             match ConfigTypes::deserialize(document){
                 Ok(e) => {
-                    match e {
+                    return match e {
                         ConfigTypes::Instance { config } => {
-                            if let Some(wanted_id) = conf_id.as_ref(){
-                                if !config.id.eq(wanted_id){
+                            if let Some(wanted_id) = conf_id.as_ref() {
+                                if !config.id.eq(wanted_id) {
                                     continue
                                 }
                             }
-                            return config;
+                            config
                         }
                     }
                 }
-                Err(e) => {}
+                Err(e) => {
+                    eprintln!("{}", e)
+                }
             }
         }
 

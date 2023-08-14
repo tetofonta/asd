@@ -134,4 +134,5 @@ fn main() {
     }
 
     write_results(&agents, &cfg, init, goal, limit, cell);
+    eprintln!("{}", field);
 }

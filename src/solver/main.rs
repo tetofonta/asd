@@ -86,6 +86,7 @@ fn reconstruct_path(nodes: &HashMap<(usize, usize), VisitedNode>, goal: (usize, 
     let mut queue = VecDeque::new();
     let mut n = nodes.get(&goal);
     let mut t = nodes.get(&goal).unwrap().best_time();
+    let mut w = 0.0;
     let mut waits = 0;
 
     while n.is_some() {
@@ -95,6 +96,7 @@ fn reconstruct_path(nodes: &HashMap<(usize, usize), VisitedNode>, goal: (usize, 
 
         if let Some(parent) = nxt.parent(t) {
             if parent == cur { waits += 1; }
+            w += weight(&cur, &parent);
             n = nodes.get(&parent);
             t -= 1;
         } else {
@@ -103,8 +105,8 @@ fn reconstruct_path(nodes: &HashMap<(usize, usize), VisitedNode>, goal: (usize, 
     }
 
     return SolutionPath {
-        time: nodes.get(&goal).unwrap().best_time(),
-        weight: nodes.get(&goal).unwrap().best_weight(),
+        time: queue.len() - 1,
+        weight: w,
         path: Vec::from_iter(queue.iter().cloned()),
         waits,
     };
@@ -148,7 +150,7 @@ fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goa
         if node == goal {
             if greedy { break; } else { continue; }
         }
-
+        if element.time() >= tmax { continue; }
         if let Some(aux_map) = aux.clone() {
             let mut path = get_path_from_aux(node, aux_map);
             match path {
@@ -176,7 +178,6 @@ fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goa
             }
         }
 
-        if element.time() > tmax { break; }
         for neighbor in field.iter_neighbors(node.0, node.1) {
             if !agents.is_traversable(node, neighbor, element.time()) { continue; }
 
@@ -188,13 +189,14 @@ fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goa
             let weight = weight(&node, &neighbor);
             let dst_weight = dest_reference.weight(element.time() + 1, agents);
             if closed.contains(&(neighbor, element.time() + 1)) && src_weight + weight >= dst_weight { continue; }
+
             if src_weight + weight < dst_weight {
                 dest_reference.set(element.time() + 1, src_weight + weight, Some(node), agents);
             }
 
             if open.iter().filter(|x| x.0.node().clone() == neighbor && x.0.time() == element.time() + 1).count() == 0 {
                 opened += 1;
-                open.push(Reverse(OpenNode::new(heuristic(&neighbor, &goal), neighbor, element.time() + 1)))
+                open.push(Reverse(OpenNode::new(heuristic(&neighbor, &goal) + dest_reference.weight(t+1, agents), neighbor, element.time() + 1)));
             }
         }
     }
@@ -218,7 +220,7 @@ fn main() {
 
     // First of all create the field
     let field = create_field_from_configs(&cfg).expect("Cannot create field");
-    println!("{}", field);
+    eprintln!("{}", field);
 
     //then create the agents
     let mut agents = Vec::with_capacity(cfg.agents.paths.len());
@@ -235,5 +237,13 @@ fn main() {
         }
     }
 
-    println!("{:?}", solve(&field, &mgr, cfg.init, cfg.goal, cfg.time_max, aux.as_ref(), cfg.greedy));
+    let sol = solve(&field, &mgr, cfg.init, cfg.goal, cfg.time_max, aux.as_ref(), cfg.greedy);
+    serde_yaml::to_writer(std::io::stdout(), &sol).unwrap();
+    eprintln!("GREEDY: {}", cfg.greedy);
+    eprintln!("Path: {:?}", sol.path_info.path);
+    eprintln!("Time: {}it", sol.path_info.time);
+    eprintln!("Weight: {}", sol.path_info.weight);
+    eprintln!("Waits: {}", sol.path_info.waits);
+    eprintln!("States (expanded)/(opened): {}/{}", sol.expanded_states, sol.opened_states);
+
 }

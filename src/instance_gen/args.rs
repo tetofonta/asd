@@ -102,6 +102,10 @@ impl Config{
                 }
             }
 
+            if doc.is_null(){
+                continue;
+            }
+
             if !doc["kind"].as_str().expect("Settings formats must have a kind discriminator").eq("settings") {
                 continue;
             }
@@ -129,6 +133,7 @@ impl Config{
             if !doc["size"]["width"].is_badvalue() && !doc["size"]["height"].is_badvalue() {
                 cfg.size = (doc["size"]["width"].as_i64().unwrap() as usize, doc["size"]["height"].as_i64().unwrap() as usize);
             }
+            break;
         }
         return cfg;
     }

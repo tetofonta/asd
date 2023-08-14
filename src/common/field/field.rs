@@ -28,7 +28,7 @@ impl Field for InstanceField{
     fn width(&self) -> usize {
         return match self {
             InstanceField::RandomField(e) => e.width(),
-            InstanceField::CustomField(e) => e.height()
+            InstanceField::CustomField(e) => e.width()
         }
     }
 

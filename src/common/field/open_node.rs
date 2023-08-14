@@ -9,7 +9,7 @@ pub struct OpenNode<T>{
 impl<T> Eq for OpenNode<T> {}
 impl<T> PartialEq<Self> for OpenNode<T> {
     fn eq(&self, other: &Self) -> bool {
-        return self.heuristic == other.heuristic // && self.node == other.node
+        return self.heuristic == other.heuristic && self.time == other.time && self.node == other.node
     }
 }
 impl<T> PartialOrd<Self> for OpenNode<T> {
@@ -19,7 +19,8 @@ impl<T> PartialOrd<Self> for OpenNode<T> {
 }
 impl<T> Ord for OpenNode<T>{
     fn cmp(&self, other: &Self) -> Ordering {
-        return if self.heuristic == other.heuristic {Ordering::Equal} else {if self.heuristic < other.heuristic {Ordering::Less} else {Ordering::Greater}}
+        return if self.heuristic == other.heuristic {self.time.cmp(&other.time)} else {if self.heuristic < other.heuristic {Ordering::Less} else {Ordering::Greater}}
+        // return if self.heuristic == other.heuristic {Ordering::Equal} else {if self.heuristic < other.heuristic {Ordering::Less} else {Ordering::Greater}}
     }
 }
 

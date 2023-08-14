@@ -18,10 +18,10 @@ impl<'a> NeighborIterator<'a>{
     fn calc_next(point: (i64, i64), base: (usize, usize)) -> Option<(i64, i64)>{
         let mut p = point;
         p = (p.0 + 1, p.1);
-        if p.0 > base.0 as i64 + 1{
+        if p.0 > (base.0 as i64 + 1){
             p = (base.0 as i64 - 1, p.1 + 1)
         }
-        if p.1 > base.1 as i64 + 1{
+        if p.1 > (base.1 as i64 + 1){
             return None
         }
         return Some(p);

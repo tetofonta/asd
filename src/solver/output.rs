@@ -1,4 +1,6 @@
-#[derive(Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Solution{
     pub kind: String,
     pub expanded_states: usize,
@@ -6,7 +8,7 @@ pub struct Solution{
     pub path_info: SolutionPath
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SolutionPath{
     pub path: Vec<(usize, usize)>,
     pub weight: f64,
