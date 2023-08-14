@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
+
 use common::agent::agent::Agent;
+
 use crate::args::Config;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -13,7 +15,7 @@ pub struct OutSettings {
     agents: OutAgentsSettings,
     time_max: usize,
     init: (usize, usize),
-    goal: (usize, usize)
+    goal: (usize, usize),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,7 +24,7 @@ pub struct OutGridSettings {
     height: usize,
     obstacles: usize,
     noise: Option<OutNoiseSettings>,
-    custom: Option<Vec<(usize, usize)>>
+    custom: Option<Vec<(usize, usize)>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -34,17 +36,17 @@ struct OutNoiseSettings {
     frequency: f64,
     cell_size: usize,
     val_limit: u32,
-    cell_limit: usize
+    cell_limit: usize,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct OutAgentsSettings{
-    paths: Vec<Vec<(usize, usize)>>
+struct OutAgentsSettings {
+    paths: Vec<Vec<(usize, usize)>>,
 }
 
-impl OutSettings{
-    pub fn new(agents: &Vec<Agent>, cfg: &Config, init: (usize, usize), goal: (usize, usize), limit: u32, limit_cell: usize) -> Self{
-        return OutSettings{
+impl OutSettings {
+    pub fn new(agents: &Vec<Agent>, cfg: &Config, init: (usize, usize), goal: (usize, usize), limit: u32, limit_cell: usize) -> Self {
+        return OutSettings {
             seed: cfg.seed,
             id: cfg.id.clone(),
             kind: "instance".to_string(),
@@ -53,11 +55,11 @@ impl OutSettings{
             greedy: cfg.greedy,
             init,
             goal,
-            grid: OutGridSettings{
+            grid: OutGridSettings {
                 width: cfg.size.0,
                 height: cfg.size.1,
                 obstacles: cfg.obstacles,
-                noise: Some(OutNoiseSettings{
+                noise: Some(OutNoiseSettings {
                     octaves: cfg.noise_params.octaves.unwrap_or(1),
                     persistence: cfg.noise_params.persistence.unwrap_or(0.5),
                     lacunarity: cfg.noise_params.lacunarity.unwrap_or(2.0),
@@ -65,13 +67,13 @@ impl OutSettings{
                     frequency: cfg.noise_params.frequency.unwrap_or(1.0),
                     cell_size: cfg.noise_params.cell_size.unwrap_or(100),
                     val_limit: limit,
-                    cell_limit: limit_cell
+                    cell_limit: limit_cell,
                 }),
-                custom: None
+                custom: None,
             },
-            agents: OutAgentsSettings{
+            agents: OutAgentsSettings {
                 paths: agents.iter().map(|x| x.get_moves().clone()).collect::<Vec<Vec<(usize, usize)>>>()
-            }
-        }
+            },
+        };
     }
 }

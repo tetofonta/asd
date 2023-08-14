@@ -99,10 +99,9 @@ mod field_test {
 #[cfg(test)]
 mod visited_node_test {
     use std::collections::HashMap;
+
     use crate::agent::agent_manager::AgentManager;
-    use crate::field::field::RandomField;
     use crate::field::visited_node::VisitedNode;
-    use crate::noise::perlin::PerlinNoise;
 
     #[test]
     fn simple_case() {

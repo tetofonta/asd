@@ -1,10 +1,11 @@
 use std::fs;
+
 use argparse::{ArgumentParser, StoreOption};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
-pub enum ConfigTypes{
+pub enum ConfigTypes {
     Instance {
         #[serde(flatten)]
         config: Config
@@ -12,7 +13,7 @@ pub enum ConfigTypes{
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Config{
+pub struct Config {
     pub id: String,
     pub seed: u64,
     pub greedy: bool,
@@ -21,7 +22,7 @@ pub struct Config{
     pub agents: AgentsConfig,
     pub time_max: usize,
     pub init: (usize, usize),
-    pub goal: (usize, usize)
+    pub goal: (usize, usize),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -30,7 +31,7 @@ pub struct GridConfig {
     pub height: usize,
     pub obstacles: usize,
     pub noise: Option<NoiseConfig>,
-    pub custom: Option<Vec<(usize, usize)>>
+    pub custom: Option<Vec<(usize, usize)>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -42,16 +43,16 @@ pub struct NoiseConfig {
     pub frequency: f64,
     pub cell_size: usize,
     pub val_limit: u32,
-    pub cell_limit: usize
+    pub cell_limit: usize,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AgentsConfig {
-    pub paths: Vec<Vec<(usize, usize)>>
+    pub paths: Vec<Vec<(usize, usize)>>,
 }
 
-impl Config{
-    pub fn load() -> Self{
+impl Config {
+    pub fn load() -> Self {
         let mut fname: Option<String> = None;
         let mut conf_id: Option<String> = None;
         {
@@ -64,21 +65,20 @@ impl Config{
         }
 
         let contents = fs::read_to_string(fname.expect("File not specified")).expect("Should have been able to read the file");
-        let mut configs: Option<Config>;
 
         for document in serde_yaml::Deserializer::from_str(contents.as_str()) {
-            match ConfigTypes::deserialize(document){
+            match ConfigTypes::deserialize(document) {
                 Ok(e) => {
                     return match e {
                         ConfigTypes::Instance { config } => {
                             if let Some(wanted_id) = conf_id.as_ref() {
                                 if !config.id.eq(wanted_id) {
-                                    continue
+                                    continue;
                                 }
                             }
                             config
                         }
-                    }
+                    };
                 }
                 Err(e) => {
                     eprintln!("{}", e)

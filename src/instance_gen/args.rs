@@ -1,27 +1,28 @@
 use std::cmp::max;
 use std::fs;
 use std::time::SystemTime;
+
 use argparse::{ArgumentParser, Store, StoreFalse, StoreOption};
-use yaml_rust::{YamlLoader};
+use yaml_rust::YamlLoader;
 
 #[derive(Debug)]
-pub struct NoiseParams{
+pub struct NoiseParams {
     pub octaves: Option<usize>,
     pub persistence: Option<f64>,
     pub lacunarity: Option<f64>,
     pub amplitude: Option<f64>,
     pub frequency: Option<f64>,
-    pub cell_size: Option<usize>
+    pub cell_size: Option<usize>,
 }
 
 #[derive(Debug)]
-pub struct AgentParams{
+pub struct AgentParams {
     pub number: usize,
-    pub stop_probability: f64
+    pub stop_probability: f64,
 }
 
 #[derive(Debug)]
-pub struct Config{
+pub struct Config {
     pub id: String,
     pub size: (usize, usize),
     pub seed: u64,
@@ -31,12 +32,12 @@ pub struct Config{
     pub obstacles: usize,
     pub time_max: usize,
 
-    pub aux_path: Option<String>
+    pub aux_path: Option<String>,
 }
 
-impl Config{
-    pub fn load(file: Option<String>) -> Self{
-        if let Some(file) = file{
+impl Config {
+    pub fn load(file: Option<String>) -> Self {
+        if let Some(file) = file {
             return Config::load_from_file(file, None);
         }
 
@@ -73,15 +74,15 @@ impl Config{
             ap.parse_args_or_exit();
         }
 
-        if let Some(fname) = fname{
+        if let Some(fname) = fname {
             //todo check config validity
             return Config::load_from_file(fname, conf_id);
         }
         //todo check config validity
-        if w.is_some() && h.is_some(){
+        if w.is_some() && h.is_some() {
             cfg.size = (w.unwrap(), h.unwrap());
         }
-        if let Some(cell_size) = cfg.noise_params.cell_size{
+        if let Some(cell_size) = cfg.noise_params.cell_size {
             cfg.noise_params.cell_size = Some(cell_size);
         } else {
             cfg.noise_params.cell_size = Some(max(cfg.size.0, cfg.size.1))
@@ -89,7 +90,7 @@ impl Config{
         return cfg;
     }
 
-    fn load_from_file(fname: String, config_id: Option<String>) -> Self{
+    fn load_from_file(fname: String, config_id: Option<String>) -> Self {
         let mut cfg = Config::defaults();
         let contents = fs::read_to_string(fname).expect("Should have been able to read the file");
         let docs = YamlLoader::load_from_str(contents.as_str()).expect("Cannot decode config file");
@@ -97,12 +98,12 @@ impl Config{
         for doc in docs {
             if let Some(cid) = config_id.as_ref() {
                 let id: Option<&str> = doc["id"].as_str();
-                if id.is_none() || !id.unwrap().eq(&cid.to_owned()){
+                if id.is_none() || !id.unwrap().eq(&cid.to_owned()) {
                     continue;
                 }
             }
 
-            if doc.is_null(){
+            if doc.is_null() {
                 continue;
             }
 
@@ -138,8 +139,8 @@ impl Config{
         return cfg;
     }
 
-    fn defaults() -> Self{
-        return Config{
+    fn defaults() -> Self {
+        return Config {
             id: "none".to_string(),
             seed: SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_micros() as u64,
             obstacles: 30,
@@ -147,19 +148,18 @@ impl Config{
             time_max: 100,
             greedy: true,
             aux_path: None,
-            agents: AgentParams{
+            agents: AgentParams {
                 number: 1,
-                stop_probability: 0.0
+                stop_probability: 0.0,
             },
-            noise_params: NoiseParams{
+            noise_params: NoiseParams {
                 amplitude: None,
                 octaves: None,
                 frequency: None,
                 persistence: None,
                 lacunarity: None,
                 cell_size: None,
-            }
-        }
+            },
+        };
     }
-
 }

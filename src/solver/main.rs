@@ -1,15 +1,18 @@
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fs::File;
+
 use bincode::error::DecodeError;
 use flate2::read::ZlibDecoder;
+
 use common::agent::agent::Agent;
 use common::agent::agent_manager::AgentManager;
-use common::field::field::{CustomField, Field, InstanceField, RandomField};
+use common::field::{heuristic, weight};
+use common::field::field::{CustomField, InstanceField, RandomField};
 use common::field::open_node::OpenNode;
 use common::field::visited_node::VisitedNode;
-use common::field::{heuristic, weight};
 use common::noise::perlin::PerlinNoise;
+
 use crate::args::Config;
 use crate::output::{Solution, SolutionPath};
 
@@ -152,7 +155,7 @@ fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goa
         }
         if element.time() >= tmax { continue; }
         if let Some(aux_map) = aux.clone() {
-            let mut path = get_path_from_aux(node, aux_map);
+            let path = get_path_from_aux(node, aux_map);
             match path {
                 Ok(path) => {
                     let (mut path, w) = path;
@@ -184,7 +187,7 @@ fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goa
             if !nodes.contains_key(&neighbor) {
                 nodes.insert(neighbor, VisitedNode::new(neighbor));
             }
-            let mut dest_reference = nodes.get_mut(&neighbor).unwrap();
+            let dest_reference = nodes.get_mut(&neighbor).unwrap();
 
             let weight = weight(&node, &neighbor);
             let dst_weight = dest_reference.weight(element.time() + 1, agents);
@@ -196,7 +199,7 @@ fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goa
 
             if open.iter().filter(|x| x.0.node().clone() == neighbor && x.0.time() == element.time() + 1).count() == 0 {
                 opened += 1;
-                open.push(Reverse(OpenNode::new(heuristic(&neighbor, &goal) + dest_reference.weight(t+1, agents), neighbor, element.time() + 1)));
+                open.push(Reverse(OpenNode::new(heuristic(&neighbor, &goal) + dest_reference.weight(element.time() + 1, agents), neighbor, element.time() + 1)));
             }
         }
     }
@@ -245,5 +248,4 @@ fn main() {
     eprintln!("Weight: {}", sol.path_info.weight);
     eprintln!("Waits: {}", sol.path_info.waits);
     eprintln!("States (expanded)/(opened): {}/{}", sol.expanded_states, sol.opened_states);
-
 }
