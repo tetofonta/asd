@@ -223,7 +223,9 @@ fn main() {
 
     // First of all create the field
     let field = create_field_from_configs(&cfg).expect("Cannot create field");
-    eprintln!("{}", field);
+    if cfg.size.0 <= 300 && cfg.size.1 <= 300{
+        eprintln!("{}", field);
+    }
 
     //then create the agents
     let mut agents = Vec::with_capacity(cfg.agents.paths.len());

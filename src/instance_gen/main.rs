@@ -26,11 +26,11 @@ fn gen_field_parameters(cfg: &Config) -> (u32, usize, PerlinNoise) {
     let mut heap: BinaryHeap<NoiseValue> = BinaryHeap::with_capacity(cfg.obstacles);
     let noise = PerlinNoise::new(Some(cfg.seed), cfg.noise_params.octaves, cfg.noise_params.persistence, cfg.noise_params.lacunarity, cfg.noise_params.amplitude, cfg.noise_params.frequency, cfg.noise_params.cell_size);
 
-    for y in 0..cfg.size.0 {
-        for x in 0..cfg.size.1 {
+    for y in 0..cfg.size.1 {
+        for x in 0..cfg.size.0 {
             let val = NoiseValue {
                 value: noise.get_noise_u32(x, y),
-                cell: (x, y),
+                cell: y * cfg.size.0 + x,
             };
             if heap.len() < cfg.obstacles {
                 heap.push(val)
@@ -42,7 +42,7 @@ fn gen_field_parameters(cfg: &Config) -> (u32, usize, PerlinNoise) {
     }
 
     let v = heap.peek().unwrap();
-    return (v.value, cfg.size.0 * v.cell.1 + v.cell.0, noise);
+    return (v.value, v.cell, noise);
 }
 
 fn gen_agents(cfg: &Config, field: &mut InstanceField) -> Vec<Agent> {
@@ -135,5 +135,7 @@ fn main() {
     }
 
     write_results(&agents, &cfg, init, goal, limit, cell);
-    eprintln!("{}", field);
+    if cfg.size.0 <= 300 && cfg.size.1 <= 300{
+        eprintln!("{}", field);
+    }
 }

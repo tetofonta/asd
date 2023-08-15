@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 pub struct NoiseValue {
     pub value: u32,
-    pub cell: (usize, usize),
+    pub cell: usize,
 }
 
 impl Eq for NoiseValue {}
@@ -21,6 +21,16 @@ impl PartialOrd<Self> for NoiseValue {
 
 impl Ord for NoiseValue {
     fn cmp(&self, other: &Self) -> Ordering {
-        return self.value.cmp(&other.value);
+        return match self.value.cmp(&other.value) {
+            Ordering::Equal => {
+                self.cell.cmp(&other.cell)
+            }
+            Ordering::Greater => {
+                Ordering::Greater
+            }
+            Ordering::Less => {
+                Ordering::Less
+            }
+        };
     }
 }
