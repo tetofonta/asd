@@ -31,6 +31,7 @@ fn create_field_from_configs(cfg: &Config) -> Result<InstanceField, &str> {
             Some(noise.amplitude),
             Some(noise.frequency),
             Some(noise.cell_size),
+            Some(noise.offset)
         );
 
         return Ok(RandomField::new(p_noise, noise.val_limit, noise.cell_limit, (cfg.grid.width, cfg.grid.height), cfg.grid.obstacles));
@@ -223,7 +224,7 @@ fn main() {
 
     // First of all create the field
     let field = create_field_from_configs(&cfg).expect("Cannot create field");
-    if cfg.size.0 <= 300 && cfg.size.1 <= 300{
+    if cfg.grid.width <= 300 && cfg.grid.height <= 300{
         eprintln!("{}", field);
     }
 

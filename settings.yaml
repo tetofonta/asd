@@ -1,21 +1,22 @@
 ---
 id: test_rnd_gen
 kind: settings
-seed: 4039822366 # 0xF0CACC1E
+seed: 42 # 0xF0CACC1E
 greedy: true
-obstacles: 150
+obstacles: 30
 time_max: 100
 aux_path: ./test_rnd_gen.aux
 size:
-  width: 30
-  height: 30
+  width: 10
+  height: 10
 agents:
-  number: 15
+  number: 0
   stop_probability: 0.01
 noise:
-  octaves: 15
-  persistence: 0.9
-  cell_size: 12
+  octaves: 2
+  persistence: 0.85
+  cell_size: 10
+  offset: 0.0
 ---
 id: very_big
 kind: settings

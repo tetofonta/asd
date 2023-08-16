@@ -34,19 +34,22 @@ impl VisitedNode {
             self.best = (time, weight)
         }
 
-        if let Some(old) = self.get_last_entry_before(time) {
-            let (_, _, p) = old;
-            if p.is_none() || parent.is_none() {
-                self.timeline.insert(time, (weight, parent));
-                return;
-            }
-            let last_parent = p.as_ref().unwrap();
-            let cur_parent = parent.as_ref().unwrap();
-            if last_parent == cur_parent {
-                if self.weight(time, agents) > weight {
+        #[cfg(feature = "wait_move_weight_calc")]
+        {
+            if let Some(old) = self.get_last_entry_before(time) {
+                let (_, _, p) = old;
+                if p.is_none() || parent.is_none() {
                     self.timeline.insert(time, (weight, parent));
+                    return;
                 }
-                return;
+                let last_parent = p.as_ref().unwrap();
+                let cur_parent = parent.as_ref().unwrap();
+                if last_parent == cur_parent {
+                    if self.weight(time, agents) > weight {
+                        self.timeline.insert(time, (weight, parent));
+                    }
+                    return;
+                }
             }
         }
         self.timeline.insert(time, (weight, parent));
@@ -59,13 +62,16 @@ impl VisitedNode {
                 return w;
             }
 
-            for tt in t..time {
-                if !agents.can_stay(self.location, tt) {
-                    return f64::MAX;
+            #[cfg(feature = "wait_move_weight_calc")]
+            {
+                for tt in t..time {
+                    if !agents.can_stay(self.location, tt) {
+                        return f64::MAX;
+                    }
                 }
-            }
 
-            return w + (time as f64 - t as f64) * weight(&self.location, &self.location);
+                return w + (time as f64 - t as f64) * weight(&self.location, &self.location);
+            }
         }
 
         return f64::MAX;

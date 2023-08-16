@@ -24,6 +24,7 @@ pub struct PerlinNoise {
     amplitude: f64,
     frequency: f64,
     cell_size: usize,
+    offset: f64
 }
 
 #[derive(Clone, Copy)]
@@ -40,7 +41,7 @@ impl ops::Mul for Vec2 {
 
 impl PerlinNoise {
     /// Creates a new instance of the perlin noise generator
-    pub fn new(seed: Option<u64>, octaves: Option<usize>, persistence: Option<f64>, lacunarity: Option<f64>, amplitude: Option<f64>, frequency: Option<f64>, cell_size: Option<usize>) -> Self {
+    pub fn new(seed: Option<u64>, octaves: Option<usize>, persistence: Option<f64>, lacunarity: Option<f64>, amplitude: Option<f64>, frequency: Option<f64>, cell_size: Option<usize>, offset: Option<f64>) -> Self {
         return PerlinNoise {
             seed: seed.unwrap_or(SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_micros() as u64),
             octaves: octaves.unwrap_or(1),
@@ -49,6 +50,7 @@ impl PerlinNoise {
             amplitude: amplitude.unwrap_or(1.0),
             frequency: frequency.unwrap_or(1.0),
             cell_size: cell_size.unwrap_or(100),
+            offset: offset.unwrap_or(0.1)
         };
     }
 
@@ -91,7 +93,7 @@ impl PerlinNoise {
         let mut freq = self.frequency;
 
         for _ in 0..self.octaves {
-            val += amp * self.get(xx * freq, yy * freq);
+            val += amp * self.get(xx * freq + self.offset, yy * freq + self.offset);
             amp *= self.persistence;
             freq *= self.lacunarity;
         }

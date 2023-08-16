@@ -74,7 +74,7 @@ pub trait Field {
         let mut x = (self.rng().next_u64() % self.width() as u64) as usize;
         let mut y = (self.rng().next_u64() % self.height() as u64) as usize;
         let mut times = 0;
-        while self.is_obstacle(x, y) || occupied.contains(&(x, y)) {
+        while self.is_obstacle(x, y) || occupied.binary_search(&(x, y)).is_ok() {
             x = (x + 1) % self.width();
             if x == 0 {
                 y = (y + 1) % self.height();

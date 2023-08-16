@@ -22,7 +22,7 @@ mod field_test {
     #[test]
     fn simple_case() {
         let f = RandomField::new(
-            PerlinNoise::new(Some(42), Some(3), None, None, None, None, Some(5)),
+            PerlinNoise::new(Some(42), Some(3), None, None, None, None, Some(5), Some(0.1)),
             1976371185,
             9,
             (5, 5),
@@ -49,7 +49,7 @@ mod field_test {
     #[test]
     fn underflow() {
         let f = RandomField::new(
-            PerlinNoise::new(Some(42), Some(3), None, None, None, None, Some(5)),
+            PerlinNoise::new(Some(42), Some(3), None, None, None, None, Some(5), Some(0.1)),
             1976371185,
             9,
             (5, 5),
@@ -74,7 +74,7 @@ mod field_test {
     #[test]
     fn overflow() {
         let f = RandomField::new(
-            PerlinNoise::new(Some(42), Some(3), None, None, None, None, Some(5)),
+            PerlinNoise::new(Some(42), Some(1), None, None, None, None, Some(5), Some(0.1)),
             1976371185,
             9,
             (5, 5),

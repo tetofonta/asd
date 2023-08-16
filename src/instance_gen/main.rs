@@ -1,9 +1,6 @@
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::fs::File;
-use std::hash::Hash;
-use std::io::Write;
-
 use bincode::config;
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
@@ -24,7 +21,7 @@ mod output;
 
 fn gen_field_parameters(cfg: &Config) -> (u32, usize, PerlinNoise) {
     let mut heap: BinaryHeap<NoiseValue> = BinaryHeap::with_capacity(cfg.obstacles);
-    let noise = PerlinNoise::new(Some(cfg.seed), cfg.noise_params.octaves, cfg.noise_params.persistence, cfg.noise_params.lacunarity, cfg.noise_params.amplitude, cfg.noise_params.frequency, cfg.noise_params.cell_size);
+    let noise = PerlinNoise::new(Some(cfg.seed), cfg.noise_params.octaves, cfg.noise_params.persistence, cfg.noise_params.lacunarity, cfg.noise_params.amplitude, cfg.noise_params.frequency, cfg.noise_params.cell_size, cfg.noise_params.offset);
 
     for y in 0..cfg.size.1 {
         for x in 0..cfg.size.0 {
@@ -50,8 +47,9 @@ fn gen_agents(cfg: &Config, field: &mut InstanceField) -> Vec<Agent> {
     let mut start_positions: Vec<(usize, usize)> = Vec::with_capacity(cfg.agents.number);
     for i in 0..cfg.agents.number {
         let position = field.rnd_pick(&start_positions).expect("Error during the creation of the agent");
-        start_positions.push(position);
-        agents.push(
+        let pos = start_positions.binary_search(&position).unwrap_or_else(|e| e);
+        start_positions.insert(pos, position);
+        agents.insert(pos,
             Agent::new(
                 cfg.seed + i as u64,
                 position,
@@ -69,11 +67,16 @@ fn gen_agents(cfg: &Config, field: &mut InstanceField) -> Vec<Agent> {
 }
 
 fn gen_entity_positions(field: &mut InstanceField, agents: &Vec<Agent>) -> ((usize, usize), (usize, usize)) {
-    let init = field.rnd_pick(&get_agents_at_time(&agents, 0, None)).expect("Cannot pick starting position. grid is occupied at time 0");
+
+    let start_positions = get_agents_at_time(&agents, 0, None); //should be already ordered
+    let init = field.rnd_pick(&start_positions).expect("Cannot pick starting position. grid is occupied at time 0");
+
     let mut occupied_end_positions = get_agents_last(&agents, None);
     occupied_end_positions.push(init); //Theoretically we could start and end in the same position
+    occupied_end_positions.sort();
     let goal = field.rnd_pick(&occupied_end_positions).expect("Cannot pick starting position. grid is occupied at time 0");
     return (init, goal);
+
 }
 
 fn compute_aux(field: &InstanceField, goal: (usize, usize), path: &str, tmax: usize) {
