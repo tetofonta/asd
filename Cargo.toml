@@ -23,3 +23,20 @@ flate2 = "1.0"
 bincode = { version = "2.0.0-rc.3", features = ["std"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9.25"
+
+[features]
+wait_move_weight_calc = []
+heuristic_time_dependant = []
+#default = ["wait_move_weight_calc", "heuristic_time_dependant"]
+
+[profile.profiling]
+inherits = "release"
+debug = true
+panic = "unwind"
+strip = false
+
+[profile.release]
+lto = true
+strip = "symbols"
+panic = "abort"
+

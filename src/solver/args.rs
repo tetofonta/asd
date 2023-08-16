@@ -44,6 +44,7 @@ pub struct NoiseConfig {
     pub cell_size: usize,
     pub val_limit: u32,
     pub cell_limit: usize,
+    pub offset: f64
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -116,7 +116,7 @@ grid:
 agents:
   paths:
     - [ [ 2, 1 ], [ 2, 1 ], [ 2, 1 ], [ 2, 1 ], [ 2, 1 ], [ 1, 0 ] ]
-time_max: 30
+time_max: 10000
 init: [ 0, 2 ]
 goal: [ 4, 1 ]
 # Expected:

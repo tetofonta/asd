@@ -1,9 +1,6 @@
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::fs::File;
-use std::hash::Hash;
-use std::io::Write;
-
 use bincode::config;
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
@@ -24,7 +21,7 @@ mod output;
 
 fn gen_field_parameters(cfg: &Config) -> (u32, usize, PerlinNoise) {
     let mut heap: BinaryHeap<NoiseValue> = BinaryHeap::with_capacity(cfg.obstacles);
-    let noise = PerlinNoise::new(Some(cfg.seed), cfg.noise_params.octaves, cfg.noise_params.persistence, cfg.noise_params.lacunarity, cfg.noise_params.amplitude, cfg.noise_params.frequency, cfg.noise_params.cell_size);
+    let noise = PerlinNoise::new(Some(cfg.seed), cfg.noise_params.octaves, cfg.noise_params.persistence, cfg.noise_params.lacunarity, cfg.noise_params.amplitude, cfg.noise_params.frequency, cfg.noise_params.cell_size, cfg.noise_params.offset);
 
     for y in 0..cfg.size.1 {
         for x in 0..cfg.size.0 {

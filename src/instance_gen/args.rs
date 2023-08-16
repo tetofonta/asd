@@ -13,6 +13,7 @@ pub struct NoiseParams {
     pub amplitude: Option<f64>,
     pub frequency: Option<f64>,
     pub cell_size: Option<usize>,
+    pub offset: Option<f64>
 }
 
 #[derive(Debug)]
@@ -71,6 +72,7 @@ impl Config {
             ap.refer(&mut cfg.noise_params.amplitude).add_option(&["--amplitude"], StoreOption, "Starting Amplitude");
             ap.refer(&mut cfg.noise_params.frequency).add_option(&["--frequency"], StoreOption, "Starting frequency");
             ap.refer(&mut cfg.noise_params.cell_size).add_option(&["--cell_size"], StoreOption, "Cell size");
+            ap.refer(&mut cfg.noise_params.offset).add_option(&["--offset"], StoreOption, "Noise offset");
             ap.parse_args_or_exit();
         }
 
@@ -128,6 +130,7 @@ impl Config {
                 cfg.noise_params.persistence = doc["noise"]["persistence"].as_f64();
                 cfg.noise_params.lacunarity = doc["noise"]["lacunarity"].as_f64();
                 if let Some(v) = doc["noise"]["cell_size"].as_i64() { cfg.noise_params.cell_size = Some(v as usize); }
+                if let Some(v) = doc["noise"]["offset"].as_f64() { cfg.noise_params.offset = Some(v); }
             }
 
 
@@ -159,6 +162,7 @@ impl Config {
                 persistence: None,
                 lacunarity: None,
                 cell_size: None,
+                offset: None
             },
         };
     }
