@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 use std::fmt::{Display, Formatter};
 
 use rand_xoshiro::rand_core::{RngCore, SeedableRng};
@@ -70,11 +70,11 @@ pub trait Field {
     fn width(&self) -> usize;
     fn height(&self) -> usize;
     fn rng(&mut self) -> &mut Xoshiro256PlusPlus;
-    fn rnd_pick(&mut self, occupied: &Vec<(usize, usize)>) -> Result<(usize, usize), ()> {
+    fn rnd_pick(&mut self, occupied: &HashSet<(usize, usize)>) -> Result<(usize, usize), ()> {
         let mut x = (self.rng().next_u64() % self.width() as u64) as usize;
         let mut y = (self.rng().next_u64() % self.height() as u64) as usize;
         let mut times = 0;
-        while self.is_obstacle(x, y) || occupied.binary_search(&(x, y)).is_ok() {
+        while self.is_obstacle(x, y) || occupied.contains(&(x, y)) {
             x = (x + 1) % self.width();
             if x == 0 {
                 y = (y + 1) % self.height();

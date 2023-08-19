@@ -37,6 +37,7 @@ struct OutNoiseSettings {
     cell_size: usize,
     val_limit: u32,
     cell_limit: usize,
+    offset: f64
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -68,6 +69,7 @@ impl OutSettings {
                     cell_size: cfg.noise_params.cell_size.unwrap_or(100),
                     val_limit: limit,
                     cell_limit: limit_cell,
+                    offset: cfg.noise_params.offset.unwrap_or(0.1)
                 }),
                 custom: None,
             },

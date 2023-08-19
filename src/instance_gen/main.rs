@@ -1,5 +1,5 @@
 use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::fs::File;
 use bincode::config;
 use flate2::Compression;
@@ -44,23 +44,24 @@ fn gen_field_parameters(cfg: &Config) -> (u32, usize, PerlinNoise) {
 
 fn gen_agents(cfg: &Config, field: &mut InstanceField) -> Vec<Agent> {
     let mut agents: Vec<Agent> = Vec::with_capacity(cfg.agents.number);
-    let mut start_positions: Vec<(usize, usize)> = Vec::with_capacity(cfg.agents.number);
+    let mut last_agent_positions: HashSet<(usize, usize)> = HashSet::with_capacity(cfg.agents.number);
     for i in 0..cfg.agents.number {
-        let position = field.rnd_pick(&start_positions).expect("Error during the creation of the agent");
-        let pos = start_positions.binary_search(&position).unwrap_or_else(|e| e);
-        start_positions.insert(pos, position);
-        agents.insert(pos,
-            Agent::new(
+        let position = field.rnd_pick(&last_agent_positions).expect("Error during the creation of the agent");
+        // let pos = last_agent_positions.binary_search(&position).unwrap_or_else(|e| e);
+        last_agent_positions.insert(position);
+        agents.push(Agent::new(
                 cfg.seed + i as u64,
                 position,
             )
         )
     }
+
     for _t in 1..cfg.time_max {
         for i in 0..agents.len() {
-            let moves = get_agents_last(&agents, Some(agents.get(i).unwrap().get_last_pos()));
             let a = agents.get_mut(i).unwrap();
-            a.next_move(field, moves, cfg.agents.stop_probability)
+            last_agent_positions.remove(&a.get_last_pos());
+            a.next_move(field, &last_agent_positions, cfg.agents.stop_probability);
+            last_agent_positions.insert(a.get_last_pos());
         }
     }
     return agents;
@@ -68,12 +69,12 @@ fn gen_agents(cfg: &Config, field: &mut InstanceField) -> Vec<Agent> {
 
 fn gen_entity_positions(field: &mut InstanceField, agents: &Vec<Agent>) -> ((usize, usize), (usize, usize)) {
 
-    let start_positions = get_agents_at_time(&agents, 0, None); //should be already ordered
+    let start_positions = get_agents_at_time(&agents, 0); //should be already ordered
     let init = field.rnd_pick(&start_positions).expect("Cannot pick starting position. grid is occupied at time 0");
 
-    let mut occupied_end_positions = get_agents_last(&agents, None);
-    occupied_end_positions.push(init); //Theoretically we could start and end in the same position
-    occupied_end_positions.sort();
+    let mut occupied_end_positions = get_agents_last(&agents);
+    occupied_end_positions.insert(init); //Theoretically we could start and end in the same position
+
     let goal = field.rnd_pick(&occupied_end_positions).expect("Cannot pick starting position. grid is occupied at time 0");
     return (init, goal);
 

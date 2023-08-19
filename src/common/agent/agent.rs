@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use rand_xoshiro::rand_core::{RngCore, SeedableRng};
 use rand_xoshiro::Xoshiro256PlusPlus;
 
@@ -37,13 +38,13 @@ impl Agent {
         return self.moves.last().cloned().unwrap();
     }
 
-    pub fn next_move(&mut self, field: &InstanceField, others: Vec<(usize, usize)>, stop_prob: f64) {
+    pub fn next_move(&mut self, field: &InstanceField, others: &HashSet<(usize, usize)>, stop_prob: f64) {
         if self.stopped {
             return;
         }
 
         let pos = self.get_last_pos();
-        let avail_moves: Vec<(usize, usize)> = field.iter_neighbors(pos.0, pos.1)
+        let mut avail_moves: Vec<(usize, usize)> = field.iter_neighbors(pos.0, pos.1)
             .filter(|x| !others.contains(x))
             .collect::<Vec<(usize, usize)>>();
 
@@ -64,16 +65,14 @@ impl Agent {
     }
 }
 
-pub fn get_agents_at_time(agents: &Vec<Agent>, time: usize, exclude: Option<(usize, usize)>) -> Vec<(usize, usize)> {
+pub fn get_agents_at_time(agents: &Vec<Agent>, time: usize) -> HashSet<(usize, usize)> {
     return agents.iter()
         .map(|x| x.get_pos(time))
-        .filter(|x| Some(x).cloned() != exclude)
-        .collect::<Vec<(usize, usize)>>();
+        .collect::<HashSet<(usize, usize)>>();
 }
 
-pub fn get_agents_last(agents: &Vec<Agent>, exclude: Option<(usize, usize)>) -> Vec<(usize, usize)> {
+pub fn get_agents_last(agents: &Vec<Agent>) -> HashSet<(usize, usize)> {
     return agents.iter()
         .map(|x| x.get_last_pos())
-        .filter(|x| Some(x).cloned() != exclude)
-        .collect::<Vec<(usize, usize)>>();
+        .collect::<HashSet<(usize, usize)>>();
 }
