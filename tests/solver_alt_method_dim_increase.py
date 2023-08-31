@@ -42,43 +42,50 @@ aux_opened = []
 os.makedirs("tests/solver/alternative_methods_eval/noaux", exist_ok=True)
 os.makedirs("tests/solver/alternative_methods_eval/aux", exist_ok=True)
 for dim in tqdm(range(100, 1100, 100)):
-    for i in tqdm(range(300)):
+    for i in tqdm(range(100)):
         instance = {
             "id": f"alternative_methods_eval_{dim}_{i}",
             "kind": "settings",
             "seed": i*42069,
             "greedy": True,
-            "obstacles": dim*dim/4,
-            "time_max": dim*4,
+            "obstacles": math.floor(dim*dim/4),
+            "time_max": dim,
             "size": {
                 "width": dim,
                 "height": dim
             },
-            "agents": {"number": dim*dim/4, "stop_probability": 0.01},
+            "agents": {"number": min(math.floor(dim*dim*0.1), 100), "stop_probability": 0.01},
             "noise": {
                 "cell_size": 5,
                 "offset": 0.1
             }
         }
-        with open(f"tests/solver/alternative_methods_eval/noaux/alternative_methods_eval_{dim}_{i}.yaml", 'w') as out:
-            out.write(yaml.dump(instance))
-        o = subprocess.run([
-            INSTANCE_GEN,
-            '-c', f"tests/solver/alternative_methods_eval/noaux/alternative_methods_eval_{dim}_{i}.yaml"
-        ], capture_output=True)
-        with open(f"tests/solver/alternative_methods_eval/noaux/alternative_methods_eval_{dim}_{i}_instance.yaml", 'w') as out:
-            out.write(o.stdout.decode())
-
-        instance['id'] = f"alternative_methods_eval_{dim}_{i}_aux"
         instance['aux_path'] = f"tests/solver/alternative_methods_eval/aux/alternative_methods_eval_{dim}_{i}.aux"
+
         with open(f"tests/solver/alternative_methods_eval/aux/alternative_methods_eval_{dim}_{i}_aux.yaml", 'w') as out:
             out.write(yaml.dump(instance))
         o = subprocess.run([
             INSTANCE_GEN,
             '-c', f"tests/solver/alternative_methods_eval/aux/alternative_methods_eval_{dim}_{i}_aux.yaml"
         ], capture_output=True)
+
         with open(f"tests/solver/alternative_methods_eval/aux/alternative_methods_eval_{dim}_{i}_aux_instance.yaml", 'w') as out:
             out.write(o.stdout.decode())
+
+        data = yaml.safe_load(o.stdout.decode())
+        data['id'] = f"alternative_methods_eval_{dim}_{i}"
+        del data['aux_path']
+        with open(f"tests/solver/alternative_methods_eval/noaux/alternative_methods_eval_{dim}_{i}_instance.yaml", 'w') as out:
+            out.write(yaml.dump(data))
+
+        # with open(f"tests/solver/alternative_methods_eval/aux/alternative_methods_eval_{dim}_{i}_aux.yaml", 'w') as out:
+        #     out.write(yaml.dump(instance))
+        # o = subprocess.run([
+        #     INSTANCE_GEN,
+        #     '-c', f"tests/solver/alternative_methods_eval/aux/alternative_methods_eval_{dim}_{i}_aux.yaml"
+        # ], capture_output=True)
+        # with open(f"tests/solver/alternative_methods_eval/aux/alternative_methods_eval_{dim}_{i}_aux_instance.yaml", 'w') as out:
+        #     out.write(o.stdout.decode())
 
 try:
     for dim in tqdm(range(100, 1100, 100)):

@@ -11,7 +11,6 @@ import numpy
 
 INSTANCE_GEN = './target/profiling/instance_gen'
 
-# test iniziale: generazione con numero fisso di ostacoli
 instance_gen_const_obj_mem_result = []
 
 #generate instances

@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Cite this work."
+authors:
+- family-names: "Fontana"
+  given-names: "Stefano"
+  orcid: "https://orcid.org/0009-0009-4451-8622"
+title: "Elaborato di ingegneria del software, path finding for entry agent."
+version: 1.0.0
+date-released: 2023-09-31
+url: "https://github.com/tetofonta/asd"

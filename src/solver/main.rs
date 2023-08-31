@@ -1,4 +1,4 @@
-use std::cmp::{Reverse};
+use std::cmp::{max, Reverse};
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fs::File;
 
@@ -130,7 +130,7 @@ fn get_path_from_aux(location: (usize, usize), aux: &AuxMap) -> Result<(Vec<(usi
 }
 
 fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goal: (usize, usize), tmax: usize, aux: Option<&AuxMap>, greedy: bool) -> Solution {
-    let min_cells = ((init.0 as i64 - goal.0 as i64).abs() + (init.1 as i64 - goal.1 as i64).abs()) as usize;
+    let min_cells = max((init.0 as i64 - goal.0 as i64).abs(), (init.1 as i64 - goal.1 as i64).abs()) as usize;
     let mut open: BinaryHeap<Reverse<OpenNode<(usize, usize)>>> = BinaryHeap::with_capacity(min_cells);
     let mut closed: HashSet<((usize, usize), usize)> = HashSet::with_capacity(min_cells);
     let mut nodes: HashMap<(usize, usize), VisitedNode> = HashMap::with_capacity(min_cells);
