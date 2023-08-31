@@ -1,4 +1,4 @@
-use std::cmp::Reverse;
+use std::cmp::{Reverse};
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fs::File;
 
@@ -87,20 +87,18 @@ fn verify_path(path: &Vec<(usize, usize)>, t_start: usize, t_max: usize, agents:
 }
 
 fn reconstruct_path(nodes: &HashMap<(usize, usize), VisitedNode>, goal: (usize, usize)) -> SolutionPath {
-    let mut queue = VecDeque::new();
-    let mut n = nodes.get(&goal);
     let mut t = nodes.get(&goal).unwrap().best_time();
-    let mut w = 0.0;
+    let mut n = nodes.get(&goal);
+    let mut queue = VecDeque::with_capacity(t);
     let mut waits = 0;
 
-    while n.is_some() {
+    while n.is_some() || t == 0 {
         let nxt = n.take().unwrap();
         let cur = nxt.node();
         queue.push_front(cur);
 
         if let Some(parent) = nxt.parent(t) {
             if parent == cur { waits += 1; }
-            w += weight(&cur, &parent);
             n = nodes.get(&parent);
             t -= 1;
         } else {
@@ -110,7 +108,7 @@ fn reconstruct_path(nodes: &HashMap<(usize, usize), VisitedNode>, goal: (usize, 
 
     return SolutionPath {
         time: queue.len() - 1,
-        weight: w,
+        weight: nodes.get(&goal).unwrap().best_weight(),
         path: Vec::from_iter(queue.iter().cloned()),
         waits,
     };
@@ -132,9 +130,10 @@ fn get_path_from_aux(location: (usize, usize), aux: &AuxMap) -> Result<(Vec<(usi
 }
 
 fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goal: (usize, usize), tmax: usize, aux: Option<&AuxMap>, greedy: bool) -> Solution {
-    let mut open: BinaryHeap<Reverse<OpenNode<(usize, usize)>>> = BinaryHeap::new();
-    let mut closed: HashSet<((usize, usize), usize)> = HashSet::new();
-    let mut nodes: HashMap<(usize, usize), VisitedNode> = HashMap::new();
+    let min_cells = ((init.0 as i64 - goal.0 as i64).abs() + (init.1 as i64 - goal.1 as i64).abs()) as usize;
+    let mut open: BinaryHeap<Reverse<OpenNode<(usize, usize)>>> = BinaryHeap::with_capacity(min_cells);
+    let mut closed: HashSet<((usize, usize), usize)> = HashSet::with_capacity(min_cells);
+    let mut nodes: HashMap<(usize, usize), VisitedNode> = HashMap::with_capacity(min_cells);
     let mut expanded: usize = 0;
     let mut opened: usize = 1;
 
@@ -169,16 +168,17 @@ fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goa
                         }
                         prev_path.path.append(&mut path);
 
-                        verify_path(&prev_path.path, 0, tmax, &agents, goal).expect("Invalid path found!");
-                        return Solution {
-                            kind: "solution".to_string(),
-                            opened_states: opened,
-                            expanded_states: expanded,
-                            path_info: prev_path,
-                        };
+                        if verify_path(&prev_path.path, 0, tmax, &agents, goal).is_ok() {
+                            return Solution {
+                                kind: "solution".to_string(),
+                                opened_states: opened,
+                                expanded_states: expanded,
+                                path_info: Some(prev_path),
+                            };
+                        }
                     }
                 }
-                Err(_) => panic!("There's no solution.")
+                Err(_) => {}
             }
         }
 
@@ -192,7 +192,7 @@ fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goa
 
             let weight = weight(&node, &neighbor);
             let dst_weight = dest_reference.weight(element.time() + 1, agents);
-            if closed.contains(&(neighbor, element.time() + 1)) && src_weight + weight >= dst_weight { continue; }
+            if closed.contains(&(neighbor, element.time() + 1)) /*&& src_weight + weight >= dst_weight*/ { continue; }
 
             if src_weight + weight < dst_weight {
                 dest_reference.set(element.time() + 1, src_weight + weight, Some(node), agents);
@@ -206,16 +206,28 @@ fn solve(field: &InstanceField, agents: &AgentManager, init: (usize, usize), goa
     }
 
     if nodes.get(&goal).is_none() {
-        panic!("There's no solution")
+        return Solution {
+            kind: "error".to_string(),
+            opened_states: opened,
+            expanded_states: expanded,
+            path_info: None,
+        };
     }
 
     let path = reconstruct_path(&nodes, goal);
-    verify_path(&path.path, 0, tmax, &agents, goal).expect("Invalid path found!");
+    if verify_path(&path.path, 0, tmax, &agents, goal).is_err(){
+        return Solution {
+            kind: "error".to_string(),
+            opened_states: opened,
+            expanded_states: expanded,
+            path_info: None,
+        };
+    }
     return Solution {
         kind: "solution".to_string(),
         opened_states: opened,
         expanded_states: expanded,
-        path_info: path,
+        path_info: Some(path),
     };
 }
 
@@ -224,7 +236,7 @@ fn main() {
 
     // First of all create the field
     let field = create_field_from_configs(&cfg).expect("Cannot create field");
-    if cfg.grid.width <= 300 && cfg.grid.height <= 300{
+    if cfg.grid.width <= 200 && cfg.grid.height <= 200{
         eprintln!("{}", field);
     }
 
@@ -246,9 +258,11 @@ fn main() {
     let sol = solve(&field, &mgr, cfg.init, cfg.goal, cfg.time_max, aux.as_ref(), cfg.greedy);
     serde_yaml::to_writer(std::io::stdout(), &sol).unwrap();
     eprintln!("GREEDY: {}", cfg.greedy);
-    eprintln!("Path: {:?}", sol.path_info.path);
-    eprintln!("Time: {}it", sol.path_info.time);
-    eprintln!("Weight: {}", sol.path_info.weight);
-    eprintln!("Waits: {}", sol.path_info.waits);
+    if let Some(pf) = sol.path_info{
+        eprintln!("Path: {:?}", pf.path);
+        eprintln!("Time: {}it", pf.time);
+        eprintln!("Weight: {}", pf.weight);
+        eprintln!("Waits: {}", pf.waits);
+    }
     eprintln!("States (expanded)/(opened): {}/{}", sol.expanded_states, sol.opened_states);
 }

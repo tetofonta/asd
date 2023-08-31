@@ -159,7 +159,7 @@ pub struct CustomField {
     width: usize,
     height: usize,
     rng: Xoshiro256PlusPlus,
-    obstacles: BTreeSet<(usize, usize)>,
+    obstacles: HashSet<(usize, usize)>,
 }
 
 impl CustomField {
@@ -168,7 +168,7 @@ impl CustomField {
             width: size.0,
             height: size.1,
             rng: Xoshiro256PlusPlus::seed_from_u64(seed),
-            obstacles: BTreeSet::from_iter(obstacles),
+            obstacles: HashSet::from_iter(obstacles),
         });
     }
 }

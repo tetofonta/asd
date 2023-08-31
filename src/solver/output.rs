@@ -5,7 +5,7 @@ pub struct Solution {
     pub kind: String,
     pub expanded_states: usize,
     pub opened_states: usize,
-    pub path_info: SolutionPath,
+    pub path_info: Option<SolutionPath>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

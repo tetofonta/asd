@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+
 pub mod field;
 pub mod visited_node;
 pub mod open_node;
@@ -10,6 +12,20 @@ pub fn weight(a: &(usize, usize), b: &(usize, usize)) -> f64 {
     return if (a.0 as i64 - b.0 as i64) == 0 || (a.1 as i64 - b.1 as i64) == 0 { 1.0 } else { f64::sqrt(2.0) };
 }
 
+#[cfg(feature = "diagonal_distance")]
+pub fn heuristic(node: &(usize, usize), goal: &(usize, usize)) -> f64 {
+    let a = (node.0 as i64 - goal.0 as i64).abs();
+    let b = (node.1 as i64 - goal.1 as i64).abs();
+    return a as f64 + b as f64 + ((2.0f64).sqrt()-2.0) * min(a, b) as f64;
+}
+
+#[cfg(feature = "chebichev_distance")]
+pub fn heuristic(node: &(usize, usize), goal: &(usize, usize)) -> f64 {
+    return max((node.0 as i64 - goal.0 as i64).abs(), (node.1 as i64 - goal.1 as i64).abs()) as f64;
+}
+
+#[cfg(not(feature = "chebichev_distance"))]
+#[cfg(not(feature = "diagonal_distance"))]
 pub fn heuristic(node: &(usize, usize), goal: &(usize, usize)) -> f64 {
     return (node.0 as i64 - goal.0 as i64).pow(2) as f64 + (node.1 as i64 - goal.1 as i64).pow(2) as f64;
 }

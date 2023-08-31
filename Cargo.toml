@@ -26,8 +26,10 @@ serde_yaml = "0.9.25"
 
 [features]
 wait_move_weight_calc = []
-heuristic_time_dependant = []
-#default = ["wait_move_weight_calc", "heuristic_time_dependant"]
+diagonal_distance = []
+chebichev_distance = []
+euclidean_distance = []
+#default = ["wait_move_weight_calc", "manhattan_distance"]
 
 [profile.profiling]
 inherits = "release"
